@@ -60,7 +60,7 @@ function GarageDoorOpener(log, config) {
         };
     }
 
-    this.service = new Service.GarageDoorOpener(this.name);
+    this.service = new Service.Door(this.name);
 }
 
 GarageDoorOpener.prototype = {
@@ -165,7 +165,7 @@ GarageDoorOpener.prototype = {
 
         this.log.debug("Setting targetDoorState to %s", value);
 
-        if (value === 1) {
+        if (value === 100) {
             url = this.closeURL;
         } else {
             url = this.openURL;
@@ -180,7 +180,7 @@ GarageDoorOpener.prototype = {
                     this.log.warn("Error setting targetDoorState: %s", error.message);
                     callback(error);
                 } else {
-                    if (value === 1) {
+                    if (value === 100) {
                         this.log("Started closing");
                         this.simulateClose();
                     } else {
@@ -201,24 +201,24 @@ GarageDoorOpener.prototype = {
 
     simulateOpen: function() {
         this.service
-            .getCharacteristic(Characteristic.CurrentDoorState)
-            .updateValue(2);
+            .getCharacteristic(Characteristic.CurrentPosition)
+            .updateValue(0);
         setTimeout(() => {
             this.service
-                .getCharacteristic(Characteristic.CurrentDoorState)
-                .updateValue(0);
+                .getCharacteristic(Characteristic.CurrentPosition)
+                .updateValue(100);
             this.log("Finished opening");
         }, this.openTime * 1000);
     },
 
     simulateClose: function() {
         this.service
-            .getCharacteristic(Characteristic.CurrentDoorState)
-            .updateValue(3);
+            .getCharacteristic(Characteristic.CurrentPosition)
+            .updateValue(0);
         setTimeout(() => {
             this.service
                 .getCharacteristic(Characteristic.CurrentDoorState)
-                .updateValue(1);
+                .updateValue(100);
             this.log("Finished closing");
         }, this.closeTime * 1000);
     },
@@ -254,7 +254,7 @@ GarageDoorOpener.prototype = {
             .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
         this.service
-            .getCharacteristic(Characteristic.TargetDoorState)
+            .getCharacteristic(Characteristic.TargetPosition)
             .on("set", this.setTargetDoorState.bind(this));
 
         if (this.polling) {
@@ -268,12 +268,12 @@ GarageDoorOpener.prototype = {
             );
         } else {
             this.service
-                .getCharacteristic(Characteristic.CurrentDoorState)
+                .getCharacteristic(Characteristic.CurrentPosition)
                 .updateValue(1);
 
             this.service
-                .getCharacteristic(Characteristic.TargetDoorState)
-                .updateValue(1);
+                .getCharacteristic(Characteristic.TargetPosition)
+                .updateValue(2);
         }
 
         return [this.informationService, this.service];
